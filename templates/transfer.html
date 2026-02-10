@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Transfer Money - Fintech App{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50 flex">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-900 text-white hidden md:block">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold tracking-tight text-blue-400">Fintech<span class="text-white">App</span></h1>
+        </div>
+        <nav class="mt-6">
+            <a href="/dashboard"
+                class="flex items-center px-6 py-3 text-slate-400 hover:bg-slate-800 hover:text-white transition">
+                <span class="font-medium">Overview</span>
+            </a>
+            <a href="/dashboard/transactions"
+                class="flex items-center px-6 py-3 text-slate-400 hover:bg-slate-800 hover:text-white transition">
+                <span class="font-medium">Transactions</span>
+            </a>
+            <a href="/dashboard/transfer"
+                class="flex items-center px-6 py-3 bg-slate-800 text-white border-r-4 border-blue-500">
+                <span class="font-medium">Transfer</span>
+            </a>
+        </nav>
+        <div class="absolute bottom-0 w-64 p-6 border-t border-slate-800">
+            <a href="/dashboard"
+                class="block text-center w-full py-2 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded transition text-sm font-medium mb-3">
+                &larr; Back to Dashboard
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto">
+        <div class="p-8 max-w-2xl mx-auto">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Transfer Money</h2>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+                <p class="text-slate-500 mb-6">Send money instantly to another user.</p>
+
+                <form hx-post="/dashboard/transfer" hx-trigger="submit" hx-target="#result" hx-swap="innerHTML"
+                    enctype="application/x-www-form-urlencoded">
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Recipient Email</label>
+                        <input type="email" name="recipient_email" required
+                            class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                            placeholder="friend@example.com">
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Amount (USD)</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-slate-500 sm:text-sm">$</span>
+                            </div>
+                            <input type="number" name="amount" min="1" step="0.01" required
+                                class="w-full pl-7 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                placeholder="0.00">
+                        </div>
+                    </div>
+
+                    <div id="result" class="mb-4 text-center"></div>
+
+                    <div class="flex items-center space-x-4">
+                        <button type="submit"
+                            class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-md">
+                            Send Money
+                        </button>
+                        <a href="/dashboard"
+                            class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-4 rounded-lg text-center transition duration-200">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

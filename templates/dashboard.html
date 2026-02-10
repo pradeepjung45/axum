@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Fintech App{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50 flex">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-900 text-white hidden md:block">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold tracking-tight text-blue-400">Fintech<span class="text-white">App</span></h1>
+        </div>
+        <nav class="mt-6">
+            <a href="/dashboard" class="flex items-center px-6 py-3 bg-slate-800 text-white border-r-4 border-blue-500">
+                <span class="font-medium">Overview</span>
+            </a>
+            <a href="/dashboard/transactions"
+                class="flex items-center px-6 py-3 text-slate-400 hover:bg-slate-800 hover:text-white transition">
+                <span class="font-medium">Transactions</span>
+            </a>
+            <a href="/dashboard/transfer"
+                class="flex items-center px-6 py-3 text-slate-400 hover:bg-slate-800 hover:text-white transition">
+                <span class="font-medium">Transfer</span>
+            </a>
+        </nav>
+        <div class="absolute bottom-0 w-64 p-6 border-t border-slate-800">
+            <div class="flex items-center space-x-3 mb-4">
+                {{ user.full_name }}
+                <div>
+                    <p class="text-sm font-medium text-white">{{ user.full_name }}</p>
+                    <p class="text-xs text-slate-400 truncate w-32">{{ user.email }}</p>
+                </div>
+            </div>
+            <button hx-post="/logout"
+                class="w-full py-2 px-4 bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white rounded transition text-sm font-medium">
+                Sign Out
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto">
+        <!-- Mobile Header -->
+        <header class="md:hidden bg-white border-b border-slate-200 p-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-slate-900">FintechApp</h1>
+            <button class="text-slate-500">Menu</button>
+        </header>
+
+        <div class="p-8 max-w-7xl mx-auto">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Overview</h2>
+
+            <!-- Wallet Card -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-6 text-white shadow-xl">
+                    <p class="text-blue-100 text-sm font-medium mb-1">Total Balance</p>
+                    <h3 class="text-4xl font-bold mb-4">{{ wallet.currency }} {{ wallet.balance }}</h3>
+                    <div class="flex space-x-3">
+                        <a href="/dashboard/deposit"
+                            class="flex-1 bg-white/20 hover:bg-white/30 py-2 px-4 rounded-lg text-sm font-medium backdrop-blur-sm transition text-center">
+                            Deposit
+                        </a>
+                        <a href="/dashboard/withdraw"
+                            class="flex-1 bg-white/20 hover:bg-white/30 py-2 px-4 rounded-lg text-sm font-medium backdrop-blur-sm transition text-center">
+                            Withdraw
+                        </a>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                    <p class="text-slate-500 text-sm font-medium mb-1">Income</p>
+                    <h3 class="text-2xl font-bold text-green-600">+$1,250.00</h3>
+                    <p class="text-xs text-slate-400 mt-2">Last 30 days</p>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                    <p class="text-slate-500 text-sm font-medium mb-1">Expenses</p>
+                    <h3 class="text-2xl font-bold text-red-600">-$450.00</h3>
+                    <p class="text-xs text-slate-400 mt-2">Last 30 days</p>
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-800">Recent Transactions</h3>
+                    <a href="/dashboard/transactions" class="text-sm text-blue-600 hover:text-blue-700 font-medium">View
+                        All</a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
+                            <tr>
+                                <th class="px-6 py-3">Type</th>
+                                <th class="px-6 py-3">Description</th>
+                                <th class="px-6 py-3">Date</th>
+                                <th class="px-6 py-3 text-right">Amount</th>
+                                <th class="px-6 py-3 text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for tx in transactions %}
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="px-6 py-4 font-medium text-slate-800">{{ tx.transaction_type }}</td>
+                                <td class="px-6 py-4">{{ tx.description.as_deref().unwrap_or("-") }}</td>
+                                <td class="px-6 py-4 text-slate-500">{{ tx.created_at.format("%b %d, %Y") }}</td>
+                                <td class="px-6 py-4 text-right font-bold {% if tx.transaction_type == " DEPOSIT"
+                                    %}text-green-600{% else if tx.transaction_type=="WITHDRAWAL" %}text-red-600{% else
+                                    %}text-slate-800{% endif %}">
+                                    {% if tx.transaction_type == "DEPOSIT" %}+{% else if tx.transaction_type ==
+                                    "WITHDRAWAL" %}-{% endif %}
+                                    {{ tx.amount }}
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        {{ tx.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="px-6 py-12 text-center text-slate-400">
+                                    No transactions found.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

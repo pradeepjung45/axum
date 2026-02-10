@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Transactions - Fintech App{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50 flex">
+    <!-- Sidebar (Same as dashboard) -->
+    <aside class="w-64 bg-slate-900 text-white hidden md:block">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold tracking-tight text-blue-400">Fintech<span class="text-white">App</span></h1>
+        </div>
+        <nav class="mt-6">
+            <a href="/dashboard"
+                class="flex items-center px-6 py-3 text-slate-400 hover:bg-slate-800 hover:text-white transition">
+                <span class="font-medium">Overview</span>
+            </a>
+            <a href="/dashboard/transactions"
+                class="flex items-center px-6 py-3 bg-slate-800 text-white border-r-4 border-blue-500">
+                <span class="font-medium">Transactions</span>
+            </a>
+            <a href="#"
+                class="flex items-center px-6 py-3 text-slate-400 hover:bg-slate-800 hover:text-white transition">
+                <span class="font-medium">Transfer</span>
+            </a>
+        </nav>
+        <div class="absolute bottom-0 w-64 p-6 border-t border-slate-800">
+            <a href="/dashboard"
+                class="block text-center w-full py-2 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded transition text-sm font-medium mb-3">
+                &larr; Back to Dashboard
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto">
+        <div class="p-8 max-w-7xl mx-auto">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Transaction History</h2>
+
+            <!-- Transactions Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
+                            <tr>
+                                <th class="px-6 py-3">Type</th>
+                                <th class="px-6 py-3">Description</th>
+                                <th class="px-6 py-3">Date</th>
+                                <th class="px-6 py-3 text-right">Amount</th>
+                                <th class="px-6 py-3 text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for tx in transactions %}
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="px-6 py-4 font-medium text-slate-800">{{ tx.transaction_type }}</td>
+                                <td class="px-6 py-4">{{ tx.description.as_deref().unwrap_or("-") }}</td>
+                                <td class="px-6 py-4 text-slate-500">{{ tx.created_at.format("%b %d, %Y %H:%M") }}</td>
+                                <td class="px-6 py-4 text-right font-bold {% if tx.transaction_type == " DEPOSIT"
+                                    %}text-green-600{% else if tx.transaction_type=="WITHDRAWAL" %}text-red-600{% else
+                                    %}text-slate-800{% endif %}">
+                                    {% if tx.transaction_type == "DEPOSIT" %}+{% else if tx.transaction_type ==
+                                    "WITHDRAWAL" %}-{% endif %}
+                                    {{ tx.amount }}
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        {{ tx.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="px-6 py-12 text-center text-slate-400">
+                                    No transactions found.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
