@@ -92,7 +92,7 @@ pub async fn transfer(
     State(state): State<AppState>,
     Json(req): Json<crate::domain::models::TransferRequest>,
 ) -> Result<Json<WalletResponse>, AppError> {
-    let wallet = wallet_service::transfer(&state.pool, user_id, &req.recipient_email, req.amount).await?;
+    let wallet = wallet_service::transfer(&state.pool, &state.email_service, user_id, &req.recipient_email, req.amount).await?;
     Ok(Json(WalletResponse::from(wallet)))
 }
 

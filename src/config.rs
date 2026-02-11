@@ -14,16 +14,13 @@ use std::env;
 
 #[derive(Debug, Clone)]
 pub struct Config {
-    /// PostgreSQL database connection URL
-    /// Example: "postgresql://user:password@localhost:5433/fintech_db"
     pub database_url: String,
-    
-    /// Secret key for signing JWT tokens
-    /// This MUST be kept secret! Anyone with this can create fake tokens.
-    /// In production, use a long random string (at least 32 characters)
     pub jwt_secret: String,
-    
-    /// Server host address (e.g., "0.0.0.0" or "127.0.0.1")
+    pub smtp_host: String,
+    pub smtp_port: u16,
+    pub smtp_user: String,
+    pub smtp_password: String,
+    pub smtp_from: String,
     pub server_host: String,
     
     /// Server port (e.g., 3000)
@@ -56,6 +53,20 @@ impl Config {
             ));
         }
         
+        // Read SMTP settings (required)
+        let smtp_host = env::var("SMTP_HOST")
+            .map_err(|_| AppError::internal("SMTP_HOST must be set"))?;
+        let smtp_port: u16 = env::var("SMTP_PORT")
+            .unwrap_or_else(|_| "587".to_string())
+            .parse()
+            .map_err(|_| AppError::internal("SMTP_PORT must be a valid number"))?;
+        let smtp_user = env::var("SMTP_USER")
+            .map_err(|_| AppError::internal("SMTP_USER must be set"))?;
+        let smtp_password = env::var("SMTP_PASSWORD")
+            .map_err(|_| AppError::internal("SMTP_PASSWORD must be set"))?;
+        let smtp_from = env::var("SMTP_FROM")
+            .map_err(|_| AppError::internal("SMTP_FROM must be set"))?;
+        
         // Read SERVER_HOST (optional, defaults to "0.0.0.0")
         let server_host = env::var("SERVER_HOST")
             .unwrap_or_else(|_| "0.0.0.0".to_string());
@@ -69,6 +80,11 @@ impl Config {
         Ok(Config {
             database_url,
             jwt_secret,
+            smtp_host,
+            smtp_port,
+            smtp_user,
+            smtp_password,
+            smtp_from,
             server_host,
             server_port,
         })

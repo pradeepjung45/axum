@@ -182,6 +182,7 @@ pub async fn withdraw(
 /// The updated sender's wallet
 pub async fn transfer(
     pool: &PgPool,
+    email_service: &crate::services::email_service::EmailService,
     sender_id: Uuid,
     recipient_email: &str,
     amount: Decimal,
@@ -304,7 +305,15 @@ pub async fn transfer(
     .map_err(AppError::DatabaseError)?;
 
     // 8. Commit transaction
+    // 8. Commit transaction
     tx.commit().await.map_err(AppError::DatabaseError)?;
+
+    // 9. Send Email Notification (Async)
+    let email_service = email_service.clone();
+    let recipient_email = recipient_email.to_string();
+    tokio::spawn(async move {
+        email_service.send_transfer_success(&recipient_email, amount).await;
+    });
 
     Ok(updated_sender_wallet)
 }

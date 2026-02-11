@@ -175,7 +175,7 @@ pub async fn transfer_submit(
     use axum::response::AppendHeaders;
 
     // Call the service
-    wallet_service::transfer(&state.pool, user_id, &req.recipient_email, req.amount).await?;
+    wallet_service::transfer(&state.pool, &state.email_service, user_id, &req.recipient_email, req.amount).await?;
 
     // Return success message and redirect
     Ok((
