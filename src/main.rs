@@ -30,13 +30,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create app state
     let state = AppState {
         pool,
-        jwt_secret: config.jwt_secret.clone(),
+        jwt_secret: std::env::var("JWT_SECRET").expect("JWT_SECRET must be set"),
+        rate_limiter: std::sync::Arc::new(std::sync::Mutex::new(std::collections::HashMap::new())),
     };
 
-    // 1. API Routes (already have state attached)
-    let api_routes = auth_routes(state.clone());
-
-    // 2. Web Routes (need state attached)
+    // Create web routes with state
     let web_routes = Router::new()
         .route("/", get(handlers::web::login_page))
         .route("/login", get(handlers::web::login_page))
@@ -52,12 +50,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/dashboard/transfer", get(handlers::web::transfer_page))
         .route("/dashboard/transfer", post(handlers::web::transfer_submit))
         .route("/logout", post(handlers::web::logout))
-        .with_state(state);
+        .with_state(state.clone());
 
-    // 3. Merge everything - API routes under /api, web routes at root
+    // Build our application with routes
     let app = Router::new()
-        .nest("/api", api_routes)  // API routes: /api/register, /api/login, etc.
-        .merge(web_routes)          // Web routes: /login, /register, /dashboard
+        .nest("/api", auth_routes(state.clone()))
+        .merge(web_routes)
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            my_fintech_app::middleware::rate_limit::rate_limit_middleware,
+        ))
         .nest_service("/assets", ServeDir::new("assets"))
         .layer(TraceLayer::new_for_http());
 
@@ -75,7 +77,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing::info!("     GET  http://{}/dashboard (dashboard)", addr);
 
     let listener = tokio::net::TcpListener::bind(&addr).await?;
-    axum::serve(listener, app).await?;
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<std::net::SocketAddr>(),
+    )
+    .await?;
 
     Ok(())
 }

@@ -10,6 +10,8 @@ use sqlx::PgPool;
 pub struct AppState {
     pub pool: PgPool,
     pub jwt_secret: String,
+    // (Count, ResetTime)
+    pub rate_limiter: std::sync::Arc<std::sync::Mutex<std::collections::HashMap<std::net::IpAddr, (u32, std::time::Instant)>>>,
 }
 
 // ============================================================================
