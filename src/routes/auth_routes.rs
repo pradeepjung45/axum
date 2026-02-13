@@ -12,6 +12,7 @@ pub struct AppState {
     pub jwt_secret: String,
     // (Count, ResetTime)
     pub rate_limiter: std::sync::Arc<std::sync::Mutex<std::collections::HashMap<std::net::IpAddr, (u32, std::time::Instant)>>>,
+    pub email_service: crate::services::email_service::EmailService,
 }
 
 // ============================================================================

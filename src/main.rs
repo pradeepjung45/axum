@@ -27,11 +27,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let pool = config::create_db_pool(&config.database_url).await?;
     tracing::info!("✅ Database connected");
 
+    // Initialize Email Service
+    let email_service = my_fintech_app::services::email_service::EmailService::new(
+        config.smtp_host.clone(),
+        config.smtp_port,
+        config.smtp_user.clone(),
+        config.smtp_password.clone(),
+        config.smtp_from.clone(),
+    );
+
     // Create app state
     let state = AppState {
         pool,
         jwt_secret: std::env::var("JWT_SECRET").expect("JWT_SECRET must be set"),
         rate_limiter: std::sync::Arc::new(std::sync::Mutex::new(std::collections::HashMap::new())),
+        email_service,
     };
 
     // Create web routes with state
