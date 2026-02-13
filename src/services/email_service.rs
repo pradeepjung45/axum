@@ -19,7 +19,7 @@ impl EmailService {
         smtp_password: String,
         smtp_from: String,
     ) -> Self {
-    let creds = Credentials::new(smtp_user, smtp_password);
+let creds = Credentials::new(smtp_user, smtp_password);
 
         let mailer = AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&smtp_host)
             .unwrap()
