@@ -76,3 +76,22 @@ impl FromRequestParts<AppState> for AuthUser {
         Ok(AuthUser(user_id))
     }
 }
+
+// ============================================================================
+// HELPER FUNCTION FOR WEBSOCKET AUTH
+// ============================================================================
+
+/// Extract user ID from the auth_token cookie
+pub fn get_user_from_cookie(
+    cookies: &axum_extra::extract::CookieJar,
+    jwt_secret: &str,
+) -> Result<Uuid, AppError> {
+    let token = cookies
+        .get("auth_token")
+        .ok_or(AppError::InvalidToken)?
+        .value()
+        .to_string();
+
+    let claims = validate_token(&token, jwt_secret)?;
+    claims.user_id()
+}

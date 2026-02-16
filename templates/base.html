@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,10 +9,110 @@
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
     </style>
 </head>
+
 <body class="bg-slate-50 text-slate-900 min-h-screen">
     {% block content %}{% endblock %}
+
+    <!-- Toast notification container -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50"></div>
+
+    <!-- WebSocket connection script -->
+    <script>
+        // Connect to WebSocket (server authenticates via HttpOnly cookie)
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/api/ws`;
+        const ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+            console.log('✅ Connected to real-time notifications');
+        };
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                showToast(data.message);
+                // Update balance if present
+                if (data.newBalance) {
+                    const balanceEl = document.getElementById('wallet-balance');
+                    if (balanceEl) {
+                        balanceEl.textContent = `USD ${data.newBalance}`;
+                    }
+                }
+            } catch (e) {
+                // Fallback for plain text messages
+                showToast(event.data);
+            }
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+
+        ws.onclose = () => {
+            console.log('❌ Disconnected from notifications');
+        };
+
+        // Show toast notification
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'bg-green-600 text-white px-6 py-4 rounded-lg shadow-lg mb-2 animate-slide-in';
+            toast.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">💰</span>
+                    <p class="font-medium">${message}</p>
+                </div>
+            `;
+
+            container.appendChild(toast);
+
+            // Remove after 5 seconds
+            setTimeout(() => {
+                toast.classList.add('animate-slide-out');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+    </script>
+
+    <style>
+        @keyframes slide-in {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slide-out {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        .animate-slide-in {
+            animation: slide-in 0.3s ease-out;
+        }
+
+        .animate-slide-out {
+            animation: slide-out 0.3s ease-in;
+        }
+    </style>
 </body>
+
 </html>

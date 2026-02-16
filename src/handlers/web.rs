@@ -174,8 +174,17 @@ pub async fn transfer_submit(
 ) -> Result<impl IntoResponse, crate::error::AppError> {
     use axum::response::AppendHeaders;
 
+    tracing::info!("📥 Transfer request received: {:?}", req);
+
     // Call the service
-    wallet_service::transfer(&state.pool, &state.email_service, user_id, &req.recipient_email, req.amount).await?;
+    wallet_service::transfer(
+        &state.pool,
+        &state.email_service,
+        &state.notification_service,
+        user_id,
+        &req.recipient_email,
+        req.amount
+    ).await?;
 
     // Return success message and redirect
     Ok((

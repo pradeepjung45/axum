@@ -122,8 +122,21 @@ pub struct WithdrawRequest {
 #[derive(Debug, Deserialize)]
 pub struct TransferRequest {
     pub recipient_email: String,
+    #[serde(deserialize_with = "deserialize_decimal_from_string")]
     pub amount: rust_decimal::Decimal,
 }
+
+/// Custom deserializer for Decimal from form string
+fn deserialize_decimal_from_string<'de, D>(deserializer: D) -> Result<rust_decimal::Decimal, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    use serde::de::Error;
+    let s = String::deserialize(deserializer)?;
+    s.parse::<rust_decimal::Decimal>()
+        .map_err(|e| Error::custom(format!("Invalid decimal: {}", e)))
+}
+
 
 // ============================================================================
 // TRANSACTION MODEL
