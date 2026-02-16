@@ -82,21 +82,6 @@ The notification will disappear after 5 seconds.
 ```
 
 ---
-
-## 🎨 Demo Scenario
-
-**The "Wow" Demo**:
-1. Open 3 browser windows (Alice, Bob, Charlie)
-2. Log all three in simultaneously
-3. Have Alice send money to Bob  
-   → Bob sees notification instantly
-4. Have Bob send to Charlie  
-   → Charlie sees notification
-5. Close Charlie's tab  
-   → Send from Alice to Charlie  
-   → No notification (Charlie offline)  
-   → Charlie logs back in and checks wallet (balance updated!)
-
 ---
 
 ## 🔧 Technical Details
