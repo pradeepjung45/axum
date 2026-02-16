@@ -183,6 +183,7 @@ pub async fn withdraw(
 pub async fn transfer(
     pool: &PgPool,
     email_service: &crate::services::email_service::EmailService,
+    notification_service: &crate::services::notification_service::NotificationService,
     sender_id: Uuid,
     recipient_email: &str,
     amount: Decimal,
@@ -277,17 +278,18 @@ pub async fn transfer(
     .await
     .map_err(AppError::DatabaseError)?;
 
-    // 7. Add to recipient
-    sqlx::query!(
+    // 7. Add to recipient and get new balance
+    let recipient_new_balance = sqlx::query!(
         r#"
         UPDATE wallets
         SET balance = balance + $1, updated_at = NOW()
         WHERE id = $2
+        RETURNING balance
         "#,
         amount,
         recipient_wallet.id
     )
-    .execute(&mut *tx)
+    .fetch_one(&mut *tx)
     .await
     .map_err(AppError::DatabaseError)?;
 
@@ -305,15 +307,27 @@ pub async fn transfer(
     .map_err(AppError::DatabaseError)?;
 
     // 8. Commit transaction
-    // 8. Commit transaction
     tx.commit().await.map_err(AppError::DatabaseError)?;
 
     // 9. Send Email Notification (Async)
     let email_service = email_service.clone();
-    let recipient_email = recipient_email.to_string();
+    let recipient_email_str = recipient_email.to_string();
     tokio::spawn(async move {
-        email_service.send_transfer_success(&recipient_email, amount).await;
+        email_service.send_transfer_success(&recipient_email_str, amount).await;
     });
+
+    // 10. Send Real-Time WebSocket Notification with Balance
+    tracing::info!("🔔 Attempting to send WebSocket notification to user: {}", recipient_user.id);
+    let notification_json = serde_json::json!({
+        "type": "transfer_received",
+        "message": format!("💰 You received ${} from a transfer!", amount),
+        "amount": amount.to_string(),
+        "newBalance": recipient_new_balance.balance.to_string()
+    });
+    let notification_msg = serde_json::to_string(&notification_json).unwrap_or_else(|_| {
+        format!("💰 You received ${} from a transfer!", amount)
+    });
+    notification_service.send_to_user(&recipient_user.id, notification_msg).await;
 
     Ok(updated_sender_wallet)
 }

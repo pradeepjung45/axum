@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = "0.7.5"
+axum = { version = "0.7.5", features = ["ws"] }
 tokio = { version = "1.37.0", features = ["full"] }
 sqlx = { version = "0.7.4", features = [ "runtime-tokio-rustls", "postgres", "macros", "chrono", "uuid", "rust_decimal" ] }
 serde = { version = "1.0.197", features = ["derive"] }
@@ -26,3 +26,4 @@ askama_axum = "0.4"
 axum-extra = { version = "0.9", features = ["cookie"] }
 time = "0.3"
 lettre = { version = "0.10", features = ["tokio1-native-tls", "smtp-transport", "builder"] }
+futures = "0.3"

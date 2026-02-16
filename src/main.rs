@@ -36,12 +36,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         config.smtp_from.clone(),
     );
 
+    // Initialize Notification Service
+    let notification_service = my_fintech_app::services::notification_service::NotificationService::new();
+
     // Create app state
     let state = AppState {
         pool,
         jwt_secret: std::env::var("JWT_SECRET").expect("JWT_SECRET must be set"),
         rate_limiter: std::sync::Arc::new(std::sync::Mutex::new(std::collections::HashMap::new())),
         email_service,
+        notification_service,
     };
 
     // Create web routes with state

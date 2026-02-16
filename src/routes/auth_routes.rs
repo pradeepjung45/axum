@@ -13,6 +13,7 @@ pub struct AppState {
     // (Count, ResetTime)
     pub rate_limiter: std::sync::Arc<std::sync::Mutex<std::collections::HashMap<std::net::IpAddr, (u32, std::time::Instant)>>>,
     pub email_service: crate::services::email_service::EmailService,
+    pub notification_service: crate::services::notification_service::NotificationService,
 }
 
 // ============================================================================
@@ -32,6 +33,8 @@ pub fn auth_routes(state: AppState) -> Router {
         .route("/wallet/withdraw", post(wallet::withdraw))
         .route("/wallet/transfer", post(wallet::transfer))
         .route("/transactions", get(wallet::get_history))
+        // WebSocket route
+        .route("/ws", get(crate::handlers::ws::websocket_handler))
         .with_state(state)
 }
 
